@@ -42,8 +42,6 @@ router.get('/:id', async (req, res) => {
     const conn = await pool
     const [row] = await conn.query(`SELECT * FROM album WHERE id = ${id}`)
 
-    console.log(row)
-
     if (row !== undefined) {
       res.status(200).send({
         status: 'success',
@@ -110,8 +108,6 @@ router.put('/', async (req, res) => {
   try {
     // Set req.body.id into id, then spread operators for the rest of object into update variable
     const { id, ...update } = req.body
-
-    console.log(req.body)
 
     // TODO: Update record
     const conn = await pool
