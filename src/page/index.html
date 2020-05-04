@@ -4,9 +4,223 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>App</title>
+
+  <!-- Tailwind -->
   <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body>
-  OK
+  <div class='container mx-auto py-8 px-2'>
+    <div class='flex justify-between'>
+      <div class='text-2xl font-bold text-gray-900 pb-4'>Riffy's Album Collection</div>
+      <div>
+        <button class='bg-blue-500 hover:bg-blue-700 text-white text-sm font-semibold rounded py-2 px-4 uppercase' onclick='addGUI()'>
+          Create
+        </button>
+      </div>
+    </div>
+
+    <!-- Form container -->
+    <div id='form-container' class='flex flex-wrap'>
+    </div>
+
+    <!-- Flex container to display albums-->
+    <div id='albums' class='flex flex-wrap justify-center items-center'>Loading...</div>
+  </div>
+  <!-- icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css" rel="stylesheet"></link>
+  <script>
+    const API_ENDPOINT = '/api/album'
+    const fetchAPI = (url, options) => fetch(`${API_ENDPOINT}${url}`, options)
+
+    const killGUI = opt => document.querySelector(`#${opt}-gui`) !== null ? document.querySelector(`#${opt}-gui`).remove() : null
+
+    // Open add GUI
+    const addGUI = () => {
+      killGUI('add')
+      document.querySelector('#form-container').innerHTML = `
+        <div class='p-4 w-full md:w-2/5'>
+          <div id='add-gui' class='rounded-md overflow-auto shadow-xl p-6'>
+            <div class='flex items-center flex-wrap'>
+              <div class='text-xl font-semibold text-gray-900 pr-2'>Adding data</div>
+              <button class='bg-red-500 hover:bg-red-700 text-white text-sm font-semibold rounded-full w-8 h-8' onclick='killGUI("add")'>
+                <i class='fas fa-times'></i>
+              </button>
+            </div>
+            <form id='add-form' class='flex flex-wrap pt-4' action='/api/album' method='post'>
+              <div class='pb-2 w-full'>
+                <input
+                  type='text'
+                  name='name'
+                  placeholder='Album name'
+                  class='bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal'
+                  required
+                >
+              </div>
+              <div class='pb-2 w-full'>
+                <input
+                  type='text'
+                  name='image_url'
+                  placeholder='Image URL'
+                  class='bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal'
+                  required
+                >
+              </div>
+              <div class='pr-1 w-1/2'>
+                <input
+                  type='text'
+                  name='author'
+                  placeholder='Author'
+                  class='bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal'
+                  required
+                >
+              </div>
+              <div class='pl-1 w-1/2'>
+                <input
+                  type='text'
+                  name='genre'
+                  placeholder='Genre'
+                  class='bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal'
+                  required
+                >
+              </div>
+              <div class='w-full pt-2'>
+                <button class='w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded' type='submit'>
+                  Add
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      `
+    }
+
+    // Open edit GUI
+    const editGUI = album => {
+      killGUI('edit')
+      document.querySelector('#form-container').innerHTML = `
+        <div class='p-4 w-full md:w-2/5'>
+          <div id='edit-gui' class='rounded-md overflow-auto shadow-xl p-6'>
+            <div class='flex items-center flex-wrap'>
+              <div class='text-xl font-semibold text-gray-900 pr-2'>Updating ${album.name}</div>
+              <button class='bg-red-500 hover:bg-red-700 text-white text-sm font-semibold rounded-full w-8 h-8' onclick='killGUI("edit")'>
+                <i class='fas fa-times'></i>
+              </button>
+            </div>
+            <form id='edit-form' class='flex flex-wrap pt-4' action='/api/album?_method=PUT' method='post'>
+              <input type='hidden' name='id' value='${album.id}' />
+              <div class='pb-2 w-full'>
+                <input
+                  type='text'
+                  name='name'
+                  placeholder='Album name'
+                  value='${album.name}'
+                  class='bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal'
+                  required
+                >
+              </div>
+              <div class='pb-2 w-full'>
+                <input
+                  type='text'
+                  name='image_url'
+                  placeholder='Image URL'
+                  value='${album.image_url}'
+                  class='bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal'
+                  required
+                >
+              </div>
+              <div class='pr-1 w-1/2'>
+                <input
+                  type='text'
+                  name='author'
+                  placeholder='Author'
+                  value='${album.author}'
+                  class='bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal'
+                  required
+                >
+              </div>
+              <div class='pl-1 w-1/2'>
+                <input
+                  type='text'
+                  name='genre'
+                  placeholder='Genre'
+                  value='${album.genre}'
+                  class='bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal'
+                  required
+                >
+              </div>
+              <div class='w-full pt-2'>
+                <button class='w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded' type='submit'>
+                  Update
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      `
+    }
+
+    // Toggle albums container to be show/hidden
+    const toggleAlbums = () => {
+      const baseClass = 'flex flex-wrap justify-center items-center'
+
+      if (document.querySelector('#albums.hidden') === null) {
+        document.querySelector('#albums').setAttribute('class', `${baseClass} hidden`)
+      } else {
+        document.querySelector('#albums').setAttribute('class', `${baseClass}`)
+      }
+    }
+
+    // Remove album from system
+    const removeAlbum = async id => {
+      console.log('ok')
+      const payload = {
+        method: 'delete',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id,
+        })
+      }
+
+      const res = await fetchAPI('/', payload)
+      document.querySelector(`#album-${id}`).remove()
+    }
+
+    // Fetch all albums, then inject into album container
+    const fetchAllAlbums = async () => {
+      // Obtain data from API
+      const res = await (await fetchAPI('/all')).json()
+      const { data } = res.response
+
+      // Inject DOM
+      document.querySelector('#albums').innerHTML = data.reverse().map(album => {
+        return `
+          <div class='w-1/2 md:w-1/3 lg:w-1/4 p-4' id='album-${album.id}'>
+            <div class='rounded-md overflow-auto shadow-lg'>
+              <img class='w-full h-auto' src='${album.image_url}' />
+              <div class='p-4'>
+                <div class='text-gray-900 text-lg font-bold'>${album.name}</div>
+                <div class='text-gray-600 text-sm'>${album.author}</div>
+                <div class='pt-2'>
+                  <button class='bg-blue-500 hover:bg-blue-700 text-white text-sm font-semibold rounded-full w-8 h-8 mr-1' onclick='editGUI(${JSON.stringify(album)})'>
+                    <i class='fas fa-pencil-alt'></i>
+                  </button>
+                  <button class='bg-red-500 hover:bg-red-700 text-white text-sm font-semibold rounded-full w-8 h-8' onclick='removeAlbum(${album.id})'>
+                    <i class='fas fa-trash-alt'></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+      }).join('')
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchAllAlbums()
+    })
+  </script>
 </body>
 </html>
